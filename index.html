@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LiDAR Scan - reference</title>
+<meta name="description" content="Reference for the LiDAR Scan mod for Minecraft: controls, what the scanner models, export formats and every setting.">
+<style>
+/* Один файл без внешних зависимостей: ни шрифтов, ни таблиц стилей, ни сценариев со
+   стороны. Страница поэтому открывается без сети, не зависит от чужой доступности и
+   не создаёт обращений к третьим лицам от имени читателя. */
+:root {
+  --bg: #ffffff;
+  --panel: #f6f7f8;
+  --line: #e2e5e9;
+  --text: #1c1f23;
+  --dim: #5b6169;
+  --accent: #0b6bcb;
+  --code-bg: #f0f2f4;
+}
+/* Тема берётся из настроек системы читателя. Переключателя нет намеренно: спрашивать
+   то, что система уже знает, значит перекладывать на читателя лишний выбор. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111315;
+    --panel: #16181b;
+    --line: #262a2f;
+    --text: #e6e8ea;
+    --dim: #9aa1a9;
+    --accent: #4fa3f7;
+    --code-bg: #1b1e22;
+  }
+}
+/* Язык, в отличие от темы, переключается: язык браузера часто не совпадает с тем, на
+   котором человек предпочитает читать. Оба языка лежат в разметке, показывается один. */
+html[data-lang="en"] [lang="ru"] { display: none; }
+html[data-lang="ru"] [lang="en"] { display: none; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 24px 96px; }
+header { border-bottom: 1px solid var(--line); margin-bottom: 40px; padding: 56px 0 32px; position: relative; }
+h1 { font-size: 34px; margin: 0 0 8px; letter-spacing: -0.01em; }
+header p { color: var(--dim); margin: 0; }
+h2 { font-size: 22px; margin: 56px 0 16px; padding-top: 24px; border-top: 1px solid var(--line); }
+h3 { font-size: 13px; margin: 32px 0 12px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.07em; }
+p { margin: 0 0 16px; }
+ul { margin: 0 0 16px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+a { color: var(--accent); }
+code {
+  background: var(--code-bg); border-radius: 3px; padding: 1px 5px;
+  font: 13.5px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+table { width: 100%; border-collapse: collapse; margin: 0 0 24px; font-size: 14.5px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--dim); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+tbody tr:hover { background: var(--panel); }
+td.k { white-space: nowrap; }
+td.v { white-space: nowrap; color: var(--dim); }
+.note { background: var(--panel); border-left: 3px solid var(--accent); padding: 16px 20px; margin: 0 0 24px; }
+.scroll { overflow-x: auto; }
+footer { margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--dim); font-size: 14px; }
+.lang { position: absolute; top: 56px; right: 0; display: flex; gap: 0; }
+.lang button {
+  font: inherit; font-size: 13px; padding: 5px 12px; cursor: pointer;
+  background: var(--bg); color: var(--dim);
+  border: 1px solid var(--line); margin-left: -1px;
+}
+.lang button[aria-pressed="true"] { background: var(--panel); color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+<div class="lang">
+<button type="button" data-set="en" aria-pressed="true">EN</button>
+<button type="button" data-set="ru" aria-pressed="false">RU</button>
+</div>
+<h1>LiDAR Scan</h1>
+<p lang="en">A lidar scanner for Minecraft 26.2 (Forge). Client side. Author: Zenoyui.</p>
+<p lang="ru">Лидарный сканер для Minecraft 26.2 (Forge). Клиентский. Автор: Zenoyui.</p>
+</header>
+
+<div class="note">
+<div lang="en"><strong>Before you start.</strong> The mod does not flash on its own, but
+the world toggle switches the whole screen between lit and black as fast as you press it,
+and the point grid is a regular high contrast pattern. Both are recorded triggers for
+people with photosensitive epilepsy. A sparse cloud on black also asks a lot of contrast
+vision, and long sessions in the dark tire the eyes.</div>
+<div lang="ru"><strong>Прежде чем начать.</strong> Сам мод не мигает, но переключение
+показа мира меняет яркость всего экрана с той частотой, с какой вы нажимаете клавишу, а
+сетка точек - правильный узор с сильным перепадом светлого и тёмного. И то и другое
+известно как раздражитель при светочувствительной эпилепсии. Редкие точки на чёрном
+вдобавок требуют хорошей контрастной чувствительности, а долгая игра в темноте утомляет
+глаза.</div>
+</div>
+
+<p lang="en">Hold the scan key and the sensor fires a budget of pulses each tick. Every
+return becomes a point in a cloud that stays where it was measured. The world itself is
+not drawn, so what you see is the scan and nothing else.</p>
+<p lang="ru">Пока удерживается клавиша сканирования, прибор выпускает за тик отведённое
+число импульсов. Каждый возврат становится точкой облака и остаётся там, где был измерен.
+Сам мир не рисуется, поэтому вы видите скан и ничего кроме него.</p>
+
+<h2 id="controls"><span lang="en">Controls</span><span lang="ru">Управление</span></h2>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Key</span><span lang="ru">Клавиша</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>V</code></td><td><span lang="en">hold to scan</span><span lang="ru">удерживать для сканирования</span></td></tr>
+<tr><td class="k"><code>Z</code></td><td><span lang="en">cycle scan mode: line, cone narrow, cone normal, cone wide, spin</span><span lang="ru">смена режима: строка, узкий конус, обычный конус, широкий конус, вращение</span></td></tr>
+<tr><td class="k"><code>H</code></td><td><span lang="en">area map scan of the space around you</span><span lang="ru">обзорный скан помещения вокруг вас</span></td></tr>
+<tr><td class="k"><code>J</code></td><td><span lang="en">open the settings</span><span lang="ru">открыть настройки</span></td></tr>
+<tr><td class="k"><code>K</code></td><td><span lang="en">export the cloud of this dimension</span><span lang="ru">выгрузить облако этого измерения</span></td></tr>
+<tr><td class="k"><code>N</code></td><td><span lang="en">clear the cloud</span><span lang="ru">очистить облако</span></td></tr>
+<tr><td class="k"><code>B</code></td><td><span lang="en">show or hide the world</span><span lang="ru">показать или скрыть мир</span></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<h2 id="scanner"><span lang="en">What the scanner models</span><span lang="ru">Что моделируется</span></h2>
+
+<p lang="en">Range, reflectance and noise follow the lidar equation rather than a colour
+ramp on a raycast. The sensor is specified the way real units are: by the range at which a
+ten percent reflective target still returns.</p>
+<p lang="ru">Дальность, отражение и шум следуют уравнению лидара, а не раскраске луча по
+шкале. Прибор задан так же, как задают настоящие: дальностью, на которой цель с отражением
+десять процентов ещё даёт возврат.</p>
+
+<ul lang="en">
+<li><strong>Detection.</strong> Signal falls as one over range squared. Darker targets drop
+out sooner, brighter ones reach further.</li>
+<li><strong>Materials.</strong> Near-infrared reflectance per block class, with specular
+lobes for metal, ice, glass and still water, and transmittance for leaves, glass and the
+water surface. Angle of incidence reduces the return by the cosine law.</li>
+<li><strong>Multiple returns.</strong> A pulse crossing leaves, glass or a fence gate loses
+energy at each partial target and can return several times. Return mode selects what the
+receiver reports: all, first, last, strongest or dual.</li>
+<li><strong>Range resolution.</strong> A pulse has length, so two targets closer than the
+separation setting merge into a single return.</li>
+<li><strong>Beam divergence, noise and weather.</strong> The footprint widens with distance,
+range noise scales with signal to noise ratio, rain and thunder attenuate, and daylight
+raises the detection floor.</li>
+<li><strong>Geometry.</strong> Entities are scanned by the cubes of their model, blocks by
+the triangles of theirs. A fence gate has a gap between its wings, a flower is two crossed
+planes, and a ray that passes through carries on to whatever is behind.</li>
+<li><strong>Device presets.</strong> Ouster OS0, OS1 and OS2 load their published
+specifications. Figures the vendor does not publish are left alone rather than invented.</li>
+</ul>
+<ul lang="ru">
+<li><strong>Обнаружение.</strong> Сигнал падает как обратный квадрат дальности. Тёмные цели
+пропадают раньше, светлые достаются дальше.</li>
+<li><strong>Материалы.</strong> Отражение в ближнем инфракрасном по классам блоков, с
+зеркальными лепестками у металла, льда, стекла и стоячей воды и с пропусканием у листвы,
+стекла и водной поверхности. Угол падения уменьшает возврат по закону косинуса.</li>
+<li><strong>Многократные возвраты.</strong> Импульс, проходящий сквозь листву, стекло или
+калитку, теряет энергию на каждой частичной цели и способен вернуться несколько раз. Режим
+возврата выбирает, что доложит приёмник: all, first, last, strongest или dual.</li>
+<li><strong>Разрешение по дальности.</strong> Импульс имеет длину, поэтому две цели ближе
+заданного разделения сливаются в один возврат.</li>
+<li><strong>Расходимость, шум и погода.</strong> Пятно расширяется с расстоянием, шум
+дальномера растёт при падении отношения сигнала к шуму, дождь и гроза ослабляют сигнал, а
+дневной свет поднимает порог обнаружения.</li>
+<li><strong>Геометрия.</strong> Существа сканируются кубами своей модели, блоки -
+треугольниками своей. У калитки есть просвет между створками, цветок - две скрещённые
+плоскости, а прошедший мимо луч летит дальше, к тому, что за ними.</li>
+<li><strong>Наборы приборов.</strong> Ouster OS0, OS1 и OS2 загружают опубликованные
+характеристики. Числа, которых изготовитель не публикует, остаются прежними, а не
+выдумываются.</li>
+</ul>
+
+<h2 id="cloud"><span lang="en">The cloud</span><span lang="ru">Облако</span></h2>
+
+<p lang="en">The cloud holds ten million points by default and up to thirty two million.
+Thinning is what makes that capacity last: a return landing in an already scanned cell is
+dropped, and the cell grid coarsens with distance the way a real scan thins out. Points
+expire when the world changes, because a scanner has no memory better than its last
+measurement. The cloud is saved per world and read back on rejoining.</p>
+<p lang="ru">Облако держит десять миллионов точек по умолчанию и до тридцати двух
+миллионов. Ёмкости хватает надолго благодаря прореживанию: возврат, попавший в уже
+отсканированную ячейку, отбрасывается, а сетка ячеек укрупняется с расстоянием - так же
+редеет и настоящий скан. Точки исчезают при изменении мира, потому что у сканера нет
+памяти надёжнее последнего измерения. Облако сохраняется для каждого мира и читается
+обратно при возвращении.</p>
+
+<p lang="en">Three depth cues make it readable: eye-dome lighting darkens a point whose
+screen neighbours are nearer, point size falls as one over distance, and brightness falls
+with distance the way aerial perspective works outdoors. Only lightness changes, so colour
+stays free for the material.</p>
+<p lang="ru">Читаемость дают три признака глубины: затенение по глубине темнит точку, чьи
+соседи по экрану ближе; размер точки падает как обратное расстояние; яркость убывает с
+расстоянием так же, как работает воздушная перспектива. Меняется только светлота, поэтому
+цвет остаётся за материалом.</p>
+
+<h2 id="export"><span lang="en">Export</span><span lang="ru">Выгрузка</span></h2>
+
+<p lang="en">The export key writes the cloud of the current dimension to
+<code>&lt;game dir&gt;/lidar/export/</code>. The format is chosen by
+<code>exportFormat</code>.</p>
+<p lang="ru">Клавиша выгрузки пишет облако текущего измерения в
+<code>&lt;каталог игры&gt;/lidar/export/</code>. Формат задаётся настройкой
+<code>exportFormat</code>.</p>
+
+<ul lang="en">
+<li><strong>LAS 1.4</strong>, point record format 7. The ASPRS standard for lidar data.
+Coordinates use a scale of 1/1024 block, which reproduces the stored quantum exactly.</li>
+<li><strong>PLY</strong>, binary little endian, property names as PDAL writes them:
+<code>x y z red green blue intensity classification</code> plus <code>scan_angle</code> in
+degrees from nadir. Coordinates are double precision.</li>
+</ul>
+<ul lang="ru">
+<li><strong>LAS 1.4</strong>, запись формата 7. Отраслевой стандарт ASPRS для лидарных
+данных. Координаты идут с масштабом 1/1024 блока, что воспроизводит хранимый квант
+точно.</li>
+<li><strong>PLY</strong>, двоичный, младшим байтом вперёд, имена свойств как их пишет PDAL:
+<code>x y z red green blue intensity classification</code> и <code>scan_angle</code> в
+градусах от надира. Координаты двойной точности.</li>
+</ul>
+
+<p lang="en">Every point carries colour, return strength as intensity, an ASPRS class code
+and a scan angle, so the file opens in CloudCompare, QGIS or any survey tool with the fields
+such a tool expects. Axes are swapped on the way out: world height goes to Z, as those tools
+expect. No coordinate reference system is declared, because the world has none.</p>
+<p lang="ru">Каждая точка несёт цвет, силу возврата как интенсивность, код класса ASPRS и
+угол сканирования, поэтому файл открывается в CloudCompare, QGIS или любой геодезической
+программе с теми полями, которых она ждёт. Оси меняются местами при выгрузке: высота мира
+уходит в Z, как эти программы и ожидают. Система координат не объявляется, поскольку у мира
+её нет.</p>
+
+<div class="note">
+<div lang="en">The class code is the mod knowing which block it hit, not the scanner
+deducing it from geometry the way a real one would have to. It is a convenience of the
+simulation, and saying so is part of being a simulator rather than a toy.</div>
+<div lang="ru">Код класса - это мод, знающий, в какой блок попал луч, а не прибор,
+выводящий класс из геометрии, как пришлось бы настоящему. Это послабление модели, и назвать
+его прямо - часть того, чтобы быть симулятором, а не игрушкой.</div>
+</div>
+
+<h2 id="settings"><span lang="en">Settings</span><span lang="ru">Настройки</span></h2>
+
+<p lang="en">Open them with <code>J</code> in game, or from the mods list. Every option
+shows its description, unit, range and default; a value outside its range cannot be applied.
+The config file is <code>config/lidar-client.toml</code>. Defaults move themselves when the
+mod updates: an untouched value is migrated to the new default, an edited one is left
+alone.</p>
+<p lang="ru">Открываются клавишей <code>J</code> в игре или из списка модов. У каждой
+настройки видны описание, единица измерения, границы и умолчание; значение вне границ
+принято не будет. Файл настроек - <code>config/lidar-client.toml</code>. Умолчания
+переносятся сами при обновлении мода: нетронутое значение переходит на новое умолчание,
+изменённое остаётся как есть.</p>
+
+<h3><span lang="en">Sensor</span><span lang="ru">Датчик</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>sensorPreset</code></td><td class="v"><code>&quot;custom&quot;</code></td><td class="v">custom, os0, os1, os2</td><td><span lang="en">Load the specifications of a real sensor: custom, os0, os1, os2. Applied once when the value changes, so a hand-edited option is never silently undone. Figures come from the vendor product pages; what each preset writes is listed in the log.</span><span lang="ru">Загрузить характеристики настоящего прибора: custom, os0, os1, os2. Применяется один раз при смене значения, поэтому правка отдельного параметра вручную не отменяется молча. Числа взяты со страниц изготовителя; что именно записывает каждый набор, перечислено в журнале.</span> <a href="#source1">[1]</a></td></tr>
+<tr><td class="k"><code>maxReturnsPerRay</code></td><td class="v"><code>3</code></td><td class="v">1 .. 8</td><td><span lang="en">Max returns per ray. A ray continues through non-opaque blocks (glass, leaves, plants, fluids).</span><span lang="ru">Наибольшее число возвратов на один луч. Луч продолжается сквозь непрозрачные не полностью блоки: стекло, листву, растения, жидкости.</span></td></tr>
+<tr><td class="k"><code>rangeAt10PercentBlocks</code></td><td class="v"><code>96</code></td><td class="v">8 .. 512 blocks</td><td><span lang="en">Sensor range spec: distance at which a 10 percent reflective target still returns. Darker targets drop out sooner, brighter ones reach further, and the limit grows with the square of distance.</span><span lang="ru">Паспортная дальность прибора: расстояние, на котором цель с отражением десять процентов ещё даёт возврат. Более тёмные цели пропадают раньше, более светлые достаются дальше, а предел растёт как квадрат расстояния.</span> <a href="#source2">[2]</a></td></tr>
+<tr><td class="k"><code>beamDivergenceDeg</code></td><td class="v"><code>0.18</code></td><td class="v">0.0 .. 5.0 degrees</td><td><span lang="en">Beam divergence, full angle. Widens the footprint with distance.</span><span lang="ru">Расходимость пучка, полный угол. Расширяет пятно с расстоянием.</span> <a href="#source2">[2]</a></td></tr>
+<tr><td class="k"><code>rangeNoiseCm</code></td><td class="v"><code>1.0</code></td><td class="v">0.0 .. 100.0 centimetres</td><td><span lang="en">Range noise, one sigma. Gives the cloud its thickness.</span><span lang="ru">Шум дальномера, одна сигма. Даёт облаку его толщину.</span> <a href="#source2">[2]</a></td></tr>
+<tr><td class="k"><code>sensorChannels</code></td><td class="v"><code>64</code></td><td class="v">1 .. 256 channels</td><td><span lang="en">Vertical channels of the sensor, as in a multi-channel lidar (Ouster OS1: 32, 64 or 128).</span><span lang="ru">Число вертикальных каналов прибора, как у многоканального лидара (Ouster OS1: 32, 64 или 128).</span> <a href="#source2">[2]</a></td></tr>
+<tr><td class="k"><code>returnMode</code></td><td class="v"><code>&quot;all&quot;</code></td><td class="v">all, first, last, strongest, dual</td><td><span lang="en">Receiver return mode, as configured on a real sensor: all, first, last, strongest, dual. A pulse crossing leaves, glass or a fence comes back as several echoes; the sensor is told which to report. dual reports the strongest and the last, which is what Velodyne and Ouster call dual return. all reports every echo and gives the densest cloud, which is why it is the default here.</span><span lang="ru">Режим возврата приёмника, как его задают на настоящем приборе: all, first, last, strongest, dual. Импульс, прошедший сквозь листву, стекло или забор, возвращается несколькими откликами, и прибору указывают, какие докладывать. dual докладывает наибольший и последний - это то, что Velodyne и Ouster называют двойным возвратом. all докладывает каждый отклик и даёт самое плотное облако, поэтому он и выбран умолчанием.</span></td></tr>
+<tr><td class="k"><code>returnSeparationBlocks</code></td><td class="v"><code>1.0</code></td><td class="v">0.0 .. 16.0 blocks</td><td><span lang="en">Range resolution: two echoes closer together than this merge into one. A pulse has a length, so targets nearer than half of it cannot be told apart. 0 turns the check off and lets glass one centimetre from a wall give two echoes.</span><span lang="ru">Разрешение по дальности: два отклика, разделённые меньшим расстоянием, сливаются в один. Импульс имеет длину, поэтому цели ближе её половины неразличимы. 0 отключает проверку и позволяет стеклу в сантиметре от стены дать два отклика.</span> <a href="#source3">[3]</a></td></tr>
+<tr><td class="k"><code>minRangeBlocks</code></td><td class="v"><code>0.0</code></td><td class="v">0.0 .. 16.0 blocks</td><td><span lang="en">Blind zone: returns closer than this are discarded. Sensors with separate transmit and receive optics have one, about a metre on a VLP-16.</span><span lang="ru">Мёртвая зона: возвраты ближе неё отбрасываются. Она есть у приборов с раздельной передающей и приёмной оптикой, около метра у VLP-16.</span> <a href="#source2">[2]</a></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">Scan</span><span lang="ru">Сканирование</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>maxRange</code></td><td class="v"><code>48</code></td><td class="v">4 .. 256 blocks</td><td><span lang="en">Max scan ray distance.</span><span lang="ru">Наибольшая дальность луча сканирования.</span></td></tr>
+<tr><td class="k"><code>raysPerTick</code></td><td class="v"><code>512</code></td><td class="v">1 .. 8192 rays per tick</td><td><span lang="en">Rays cast per tick while the scan key is held. A real OS1 emits about 10.4 million points per second against 10240 rays per second here.</span><span lang="ru">Сколько лучей выпускается за тик, пока удерживается клавиша сканирования. Настоящий OS1 даёт около 10.4 миллиона точек в секунду против 10240 лучей в секунду здесь.</span></td></tr>
+<tr><td class="k"><code>scanFovDeg</code></td><td class="v"><code>60</code></td><td class="v">2 .. 170 degrees</td><td><span lang="en">Base opening angle of the scan pattern. Line mode uses it as fan width; the cone modes use it times 0.25, 1.0 and 2.0.</span><span lang="ru">Основной угол раскрытия рисунка сканирования. Строчный режим берёт его шириной веера, конусные - умноженным на 0.25, 1.0 и 2.0.</span></td></tr>
+<tr><td class="k"><code>spinDegPerTick</code></td><td class="v"><code>30</code></td><td class="v">1 .. 360 degrees per tick</td><td><span lang="en">Azimuth swept per tick in spin mode. 18 deg per tick is one revolution per second.</span><span lang="ru">Азимут, проходимый за тик во вращательном режиме. 18 градусов за тик дают один оборот в секунду.</span></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">Cloud</span><span lang="ru">Облако</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>maxStoredPoints</code></td><td class="v"><code>10000000</code></td><td class="v">0 .. 32000000 points</td><td><span lang="en">Point cloud capacity (ring buffer, oldest point evicted first). A point costs 26 bytes in the Java heap and 16 in video memory, and thinning adds about 13 more for its cell index. The heap arrays are allocated at full capacity as soon as the first point is stored, not as the cloud fills, and clearing the cloud does not give them back: only lowering this value does. The default reserves about 250 MB straight away and reaches about 390 MB once the cloud is full.</span><span lang="ru">Ёмкость облака точек (кольцевой буфер, первой вытесняется самая старая точка). Точка стоит 26 байт в куче Java и 16 в видеопамяти, а прореживание добавляет около 13 на её ячейку. Массивы выделяются сразу на полную ёмкость при первой сохранённой точке, а не по мере наполнения, и очистка облака их не возвращает: возвращает только уменьшение этого значения. Умолчание занимает около 250 МБ сразу и доходит до 390 МБ на полном облаке.</span></td></tr>
+<tr><td class="k"><code>pointSpacing</code></td><td class="v"><code>0.15</code></td><td class="v">0.0 .. 2.0 blocks</td><td><span lang="en">Grid step for thinning. A hit landing in an already occupied cell is dropped, so rescanning a surface does not consume the buffer. 0 disables thinning.</span><span lang="ru">Шаг сетки прореживания. Попадание в уже занятую ячейку отбрасывается, поэтому повторное сканирование поверхности не расходует буфер. 0 отключает прореживание.</span></td></tr>
+<tr><td class="k"><code>spacingReferenceBlocks</code></td><td class="v"><code>16</code></td><td class="v">1 .. 256 blocks</td><td><span lang="en">Distance at which the thinning grid step equals pointSpacing. Closer surfaces get a finer grid, further ones a coarser grid, which is how a real scan behaves: angular ray density is constant, so surface density falls with distance.</span><span lang="ru">Расстояние, на котором шаг сетки прореживания равен pointSpacing. Ближе сетка мельче, дальше крупнее - так ведёт себя и настоящий скан: угловая плотность лучей постоянна, поэтому плотность на поверхности падает с расстоянием.</span></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">Render</span><span lang="ru">Отрисовка</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>colorMode</code></td><td class="v"><code>&quot;distance&quot;</code></td><td class="v">distance, intensity, material</td><td><span lang="en">Point color: distance (rainbow ramp), intensity (return strength, grey), material (block map color). The colour is decided when a point is measured and kept with it, so this also decides what the export carries. Changing it does not recolour points already scanned: set material before scanning if you want block colours in the file.</span><span lang="ru">Цвет точки: distance (радужная шкала по расстоянию), intensity (сила возврата, оттенки серого), material (цвет блока на карте). Цвет выбирается в миг измерения и хранится вместе с точкой, поэтому им же задаётся и то, что попадёт в выгрузку. Смена настройки уже отсканированные точки не перекрашивает: если нужны цвета блоков в файле, поставьте material до сканирования.</span></td></tr>
+<tr><td class="k"><code>pointLifetimeTicks</code></td><td class="v"><code>200</code></td><td class="v">20 .. 6000 ticks</td><td><span lang="en">Particle lifetime of one point on the fallback render path. Also the refresh period: the whole cloud is redrawn once per this interval.</span><span lang="ru">Время жизни частицы одной точки на запасном пути отрисовки. Оно же период обновления: всё облако перерисовывается раз за этот промежуток.</span></td></tr>
+<tr><td class="k"><code>pointSize</code></td><td class="v"><code>0.05</code></td><td class="v">0.01 .. 0.5 blocks</td><td><span lang="en">Point quad size on the fallback particle path.</span><span lang="ru">Размер четырёхугольника точки на запасном, частичном пути отрисовки.</span></td></tr>
+<tr><td class="k"><code>renderRange</code></td><td class="v"><code>96</code></td><td class="v">8 .. 512 blocks</td><td><span lang="en">Max distance from the player at which stored points are redrawn. Independent of maxRange.</span><span lang="ru">Наибольшее расстояние от игрока, на котором сохранённые точки перерисовываются. От maxRange не зависит.</span></td></tr>
+<tr><td class="k"><code>gpuPointRenderer</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">Draw the point cloud from GPU vertex buffers instead of spawning a particle per point. Off falls back to particles, which caps the cloud at a few tens of thousands of points.</span><span lang="ru">Рисовать облако из вершинных буферов видеокарты вместо создания частицы на каждую точку. Выключение возвращает частицы, а они ограничивают облако несколькими десятками тысяч точек.</span></td></tr>
+<tr><td class="k"><code>pointPixelSize</code></td><td class="v"><code>0.0</code></td><td class="v">0.0 .. 16.0 pixels</td><td><span lang="en">Fixed point size for the GPU renderer. 0 lets the size follow distance, which is what makes a near point look nearer than a far one.</span><span lang="ru">Постоянный размер точки для отрисовки видеокартой. 0 позволяет размеру следовать за расстоянием, отчего ближняя точка и выглядит ближе дальней.</span></td></tr>
+<tr><td class="k"><code>roundPoints</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">Draw points as discs instead of squares. A real beam footprint is round, and a square reads as an artefact when points are large on screen.</span><span lang="ru">Рисовать точки кругами, а не квадратами. Пятно настоящего пучка круглое, а квадрат читается как искажение, когда точки на экране крупные.</span></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">Depth</span><span lang="ru">Глубина</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>scalePointsWithDistance</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">Size points by distance: a point stands for a patch of surface pointSpacing blocks across, so it shrinks as 1/distance. This is the relative size depth cue.</span><span lang="ru">Задавать размер точки расстоянием: точка означает участок поверхности шириной pointSpacing, поэтому уменьшается как 1/расстояние. Это признак глубины по относительному размеру.</span> <a href="#source4">[4]</a></td></tr>
+<tr><td class="k"><code>depthCueFalloffBlocks</code></td><td class="v"><code>42.0</code></td><td class="v">0.0 .. 512.0 blocks</td><td><span lang="en">Distance over which point brightness falls to 1/e, following Koschmieder&#39;s law for aerial perspective. 42 puts the edge of a 96 block render range at about 10 percent brightness. 0 turns the cue off.</span><span lang="ru">Расстояние, на котором яркость точки падает в e раз, по закону Кошмидера для воздушной перспективы. При 42 край дальности отрисовки в 96 блоков имеет около десяти процентов яркости. 0 отключает признак.</span> <a href="#source5">[5]</a></td></tr>
+<tr><td class="k"><code>depthCueMinBrightness</code></td><td class="v"><code>0.12</code></td><td class="v">0.0 .. 1.0 fraction</td><td><span lang="en">Lower bound of the brightness cue. Keeps distant points visible instead of fading them to black.</span><span lang="ru">Нижний предел яркостного признака глубины. Оставляет дальние точки видимыми вместо угасания в чёрный.</span></td></tr>
+<tr><td class="k"><code>edlEnabled</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">Eye-Dome Lighting: darken a point when its neighbours on screen are nearer to the camera. The standard shading technique for point clouds (CloudCompare, Potree, ArcGIS Pro).</span><span lang="ru">Затенение по глубине (Eye-Dome Lighting): точка темнеет, когда её соседи по экрану ближе к наблюдателю. Обычный приём затенения облаков точек (CloudCompare, Potree, ArcGIS Pro).</span> <a href="#source6">[6]</a></td></tr>
+<tr><td class="k"><code>edlStrength</code></td><td class="v"><code>1.0</code></td><td class="v">0.0 .. 10.0 fraction</td><td><span lang="en">Strength of eye-dome lighting. At 1.0 an edge where distance changes by ten percent darkens to about a half.</span><span lang="ru">Сила затенения по глубине. При 1.0 перепад расстояния в десять процентов темнеет примерно вдвое.</span></td></tr>
+<tr><td class="k"><code>edlRadiusPixels</code></td><td class="v"><code>2.0</code></td><td class="v">0.5 .. 16.0 pixels</td><td><span lang="en">Neighbour distance for eye-dome lighting. Larger outlines thicker and costs the same.</span><span lang="ru">Расстояние до соседа при затенении по глубине. Больше - толще обводка, при той же цене.</span></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">Entity</span><span lang="ru">Существа</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>entityRefreshTicks</code></td><td class="v"><code>3</code></td><td class="v">1 .. 20 ticks</td><td><span lang="en">Ticks between redraws of entity-attached points. Lower follows a moving target more closely and costs a buffer rebuild more often.</span><span lang="ru">Через сколько тиков перерисовываются точки, привязанные к существам. Меньше - точнее следует за движущейся целью и чаще требует пересборки буфера.</span></td></tr>
+<tr><td class="k"><code>maxEntityPoints</code></td><td class="v"><code>30000</code></td><td class="v">0 .. 200000 points</td><td><span lang="en">Capacity for points attached to entities. They follow the entity and are not saved to disk. 0 disables entity scanning.</span><span lang="ru">Ёмкость для точек, привязанных к существам. Они следуют за существом. 0 отключает сканирование существ.</span></td></tr>
+<tr><td class="k"><code>entityPointSpacing</code></td><td class="v"><code>0.025</code></td><td class="v">0.0 .. 1.0 blocks</td><td><span lang="en">Grid step for thinning points on entities, measured in the entity&#39;s own frame. Separate from pointSpacing because a body is small. 0 disables thinning on entities.</span><span lang="ru">Шаг сетки прореживания точек на существах, отсчитываемый в системе самого существа. Отдельный от pointSpacing, потому что тело мало. 0 отключает прореживание на существах.</span></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">Map</span><span lang="ru">Обзор</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>mapScanRadius</code></td><td class="v"><code>32</code></td><td class="v">4 .. 64 blocks</td><td><span lang="en">Radius of the area map scan (key H). The scan walks the connected air volume around the player and puts points on the block faces it touches.</span><span lang="ru">Радиус обзорного скана помещения (клавиша H). Скан обходит связный объём воздуха вокруг игрока и ставит точки на те грани блоков, которых касается.</span></td></tr>
+<tr><td class="k"><code>mapScanBlocksPerTick</code></td><td class="v"><code>4000</code></td><td class="v">200 .. 50000 cells per tick</td><td><span lang="en">Air cells processed per tick by the area map scan. Higher finishes sooner and costs more per tick.</span><span lang="ru">Сколько ячеек воздуха обрабатывает обзорный скан за тик. Больше - раньше закончится и дороже обойдётся каждый тик.</span></td></tr>
+<tr><td class="k"><code>mapScanFaceSamples</code></td><td class="v"><code>3</code></td><td class="v">1 .. 6 samples per edge</td><td><span lang="en">Points per block face edge for the area map scan: 2 means a 2x2 grid, four points per face.</span><span lang="ru">Точек на ребро грани блока при обзорном скане: 2 означает сетку 2 на 2, то есть четыре точки на грань.</span></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">Scanner</span><span lang="ru">Режим сканера</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>scannerShowItems</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">While the world is hidden (key B), keep dropped items visible.</span><span lang="ru">Пока мир скрыт (клавиша B), оставлять видимыми выброшенные предметы.</span></td></tr>
+<tr><td class="k"><code>scannerShowNameTags</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">While the world is hidden (key B), keep name tags visible: player nicknames, named mobs, and the invisible armour stands servers use for floating text.</span><span lang="ru">Пока мир скрыт (клавиша B), оставлять видимыми подписи: имена игроков, названных существ и невидимые стойки для брони, которыми на серверах делают парящий текст.</span></td></tr>
+<tr><td class="k"><code>scannerShowDisplays</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">While the world is hidden (key B), keep display entities visible: text, item and block displays.</span><span lang="ru">Пока мир скрыт (клавиша B), оставлять видимыми отображающие сущности: текстовые, предметные и блочные.</span></td></tr>
+<tr><td class="k"><code>hideWorld</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">Hide the world (terrain, entities, sky, clouds, weather) and leave only the point cloud on black. Toggled in game with B.</span><span lang="ru">Скрыть мир (рельеф, существ, небо, облака, погоду) и оставить только облако точек на чёрном. Переключается в игре клавишей B.</span></td></tr>
+</tbody>
+</table>
+</div>
+<h3><span lang="en">System</span><span lang="ru">Служебное</span></h3>
+<div class="scroll">
+<table>
+<thead><tr><th><span lang="en">Option</span><span lang="ru">Настройка</span></th><th><span lang="en">Default</span><span lang="ru">Умолчание</span></th><th><span lang="en">Accepts</span><span lang="ru">Принимает</span></th><th><span lang="en">What it does</span><span lang="ru">Что делает</span></th></tr></thead>
+<tbody>
+<tr><td class="k"><code>exportFormat</code></td><td class="v"><code>&quot;las&quot;</code></td><td class="v">las, ply, both</td><td><span lang="en">Which files the export key (K) writes: las, ply, or both. LAS 1.4 point record format 7 is the ASPRS standard for lidar data and is what a survey tool expects. PLY carries the same fields and is read by mesh tools as well; coordinates in it are double precision. both writes two files from one press and costs the time and the disk space of both.</span><span lang="ru">Какие файлы пишет клавиша выгрузки (K): las, ply или both. LAS 1.4, запись формата 7 - отраслевой стандарт ASPRS для лидарных данных, и именно его ждёт геодезическая программа. PLY несёт те же поля и читается вдобавок средствами работы с сетками; координаты в нём двойной точности. both пишет два файла за одно нажатие и стоит времени и места обоих.</span></td></tr>
+<tr><td class="k"><code>savePointCloud</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">Save the point cloud on leaving a world and load it back on rejoining. File: &lt;game dir&gt;/lidar/&lt;world&gt;.lidar</span><span lang="ru">Сохранять облако точек при выходе из мира и читать обратно при возвращении. Файл: &lt;каталог игры&gt;/lidar/&lt;мир&gt;.lidar</span></td></tr>
+<tr><td class="k"><code>scanSound</code></td><td class="v"><code>true</code></td><td class="v">true, false</td><td><span lang="en">Scanner click while a scan key is held.</span><span lang="ru">Щелчок сканера, пока удерживается клавиша сканирования.</span></td></tr>
+<tr><td class="k"><code>logPerformance</code></td><td class="v"><code>false</code></td><td class="v">true, false</td><td><span lang="en">Log a timing line every 200 ticks: scan, store and buffer rebuild times, rays and points per tick.</span><span lang="ru">Записывать в журнал строку измерений каждые 200 тиков: время скана, укладки и пересборки буфера, число лучей и точек за тик.</span></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<h2 id="sources"><span lang="en">Where the numbers come from</span><span lang="ru">Откуда взяты числа</span></h2>
+<p><span lang="en">An option without a source is not a physical quantity: it is a load or display setting, chosen by order of magnitude.</span><span lang="ru">Настройка без источника не является физической величиной: это настройка нагрузки или отображения, выбранная по порядку величины.</span></p>
+<ol>
+<li id="source1">ouster.com product pages, retrieved 2026-08-17</li>
+<li id="source2">Ouster OS1 datasheet: range at 10 percent reflectivity 90 m, beam divergence 0.18 deg, precision 0.25 to 1.5 cm, minimum range 0.0 m.</li>
+<li id="source3">Velodyne VLP-16 user manual: two echoes are reported separately only when the targets are about a metre apart or more.</li>
+<li id="source4">Webvision NBK11512, monocular depth cues: relative size.</li>
+<li id="source5">Koschmieder&#39;s law of atmospheric contrast attenuation; Webvision NBK11512, aerial perspective.</li>
+<li id="source6">Boucheny, Eye-Dome Lighting: a non-photorealistic shading technique (Kitware).</li>
+</ol>
+
+
+<h2 id="problem"><span lang="en">Reporting a problem</span><span lang="ru">Сообщить о неполадке</span></h2>
+
+<p lang="en">Open an issue at <a href="https://github.com/Zenoyui/lidar-scan/issues">github.com/Zenoyui/lidar-scan</a>.
+Please say which version of the mod you run, what you did and what happened. A log
+from the session helps more than a description of it.</p>
+<p lang="ru">Заведите запись на <a href="https://github.com/Zenoyui/lidar-scan/issues">github.com/Zenoyui/lidar-scan</a>.
+Укажите версию мода, что вы делали и что произошло. Журнал сеанса помогает больше,
+чем его пересказ.</p>
+
+<footer>
+<p lang="en">LiDAR Scan by Zenoyui. The settings on this page are generated from the option
+registry of the mod itself, so what the page says about them is what the mod does.</p>
+<p lang="ru">LiDAR Scan, автор Zenoyui. Настройки на этой странице порождены из реестра
+параметров самого мода, поэтому сказанное о них здесь - это то, что мод делает.</p>
+</footer>
+
+</div>
+<script>
+// Язык при первом открытии берётся из настроек браузера, дальше - из выбора читателя.
+// Хранится локально: это его выбор, и никуда он не отправляется.
+(function () {
+  var root = document.documentElement;
+  var stored = null;
+  try { stored = localStorage.getItem("lidar-lang"); } catch (e) { stored = null; }
+  var lang = stored || ((navigator.language || "en").toLowerCase().indexOf("ru") === 0 ? "ru" : "en");
+  function apply(value) {
+    root.setAttribute("data-lang", value);
+    root.setAttribute("lang", value);
+    var buttons = document.querySelectorAll(".lang button");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-set") === value ? "true" : "false");
+    }
+  }
+  apply(lang);
+  document.querySelector(".lang").addEventListener("click", function (event) {
+    var value = event.target.getAttribute("data-set");
+    if (!value) { return; }
+    try { localStorage.setItem("lidar-lang", value); } catch (e) { /* хранилище недоступно: выбор действует до перезагрузки */ }
+    apply(value);
+  });
+})();
+</script>
+</body>
+</html>
