@@ -8,6 +8,8 @@ not drawn, so what you see is the scan and nothing else.
 
 Author: Zenoyui
 
+https://www.curseforge.com/minecraft/mc-mods/lidar-scan
+
 ## Before you install
 
 The mod does not flash on its own, but two things are worth knowing. The world
